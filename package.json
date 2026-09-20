@@ -2,6 +2,9 @@
   "name": "zaddr-ttt",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "node server.mjs",
     "build": "next build",
