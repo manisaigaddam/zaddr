@@ -82,6 +82,21 @@ export async function connectNoir(): Promise<string> {
   return keyFromConnection(connection);
 }
 
+export async function disconnectNoir() {
+  try {
+    localStorage.removeItem(KEY);
+    sessionStorage.removeItem(KEY);
+  } catch {
+    /* ignore */
+  }
+  const wallet = getNoirWallet();
+  try {
+    await wallet?.zcash?.disconnect();
+  } catch {
+    /* site session is already cleared */
+  }
+}
+
 export function watchNoir(onChange: (key: string | null) => void) {
   const wallet = getNoirWallet();
   if (!wallet) return () => {};
