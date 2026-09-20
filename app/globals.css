@@ -128,27 +128,9 @@ h1 {
 .caption {
   color: #d8d4cb;
   font-size: clamp(0.95rem, 2vw, 1.15rem);
-  margin: 0 0 1.2rem;
-  max-width: 30rem;
+  margin: 0 0 1.5rem;
+  max-width: 32rem;
   line-height: 1.45;
-}
-.facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  justify-content: center;
-  list-style: none;
-  padding: 0;
-  margin: 0 0 1.6rem;
-}
-.facts li {
-  border: 1px solid var(--line);
-  background: rgba(36, 48, 68, 0.55);
-  color: var(--gold);
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 0.35rem 0.65rem;
 }
 
 .hint {
@@ -436,7 +418,6 @@ h1 {
 .result strong { font-size: clamp(1.1rem, 3vw, 1.5rem); }
 .result span { color: var(--dim); font-size: 0.82rem; }
 .result-row { display: flex; gap: 0.5rem; margin-top: 0.35rem; flex-wrap: wrap; justify-content: center; }
-.table-action { margin-top: -0.15rem; }
 
 .matchbar {
   grid-area: match;
@@ -489,7 +470,6 @@ h1 {
 @media (max-width: 420px) {
   .nav { padding: 0.55rem 0.7rem; }
   .cell { font-size: 1.7rem; }
-  .facts { gap: 0.3rem; }
   .brand { font-size: 0.7rem; }
   .stage { padding-inline: 0.45rem; }
   .dock { padding: 0.45rem; }

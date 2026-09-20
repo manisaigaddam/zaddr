@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Face from "@/components/Face";
 import { FACE_IDS, faceUrl } from "@/lib/mosaic";
 import { connectNoir, disconnectNoir, PLAYER_KEY, restoreNoir, waitForNoir, watchNoir } from "@/lib/noir";
-import { bootSfx, isMuted, musicPlaying, setMuted, sfx, startMusic, stopMusic } from "@/lib/sfx";
+import { bootSfx, sfx } from "@/lib/sfx";
 
 type Screen = "home" | "table";
 type Mark = "X" | "O";
@@ -110,8 +110,6 @@ export default function GameApp() {
   const [hint, setHint] = useState("");
   const [shakeConnect, setShakeConnect] = useState(false);
   const [pick, setPick] = useState<number | null>(null);
-  const [mute, setMute] = useState(false);
-  const [musicOn, setMusicOn] = useState(false);
   const [state, setState] = useState<GameState | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const keyRef = useRef<string | null>(null);
@@ -132,8 +130,6 @@ export default function GameApp() {
 
   useEffect(() => {
     bootSfx();
-    setMute(isMuted());
-    setMusicOn(musicPlaying());
   }, []);
 
   useEffect(() => {
@@ -408,25 +404,6 @@ export default function GameApp() {
     return "";
   }
 
-  function toggleMute() {
-    const next = !mute;
-    setMute(next);
-    setMuted(next);
-    if (!next) sfx("ui");
-  }
-
-  function toggleMusic() {
-    if (musicOn) {
-      stopMusic();
-      setMusicOn(false);
-      return;
-    }
-    setMuted(false);
-    setMute(false);
-    startMusic();
-    setMusicOn(true);
-  }
-
   return (
     <div className="shell">
       <Mosaic />
@@ -436,12 +413,6 @@ export default function GameApp() {
           ZADDR
         </button>
         <div className="nav-right">
-          <button type="button" className="ghost tiny" onClick={toggleMusic}>
-            {musicOn ? "Music on" : "Music off"}
-          </button>
-          <button type="button" className="ghost tiny" onClick={toggleMute} aria-label={mute ? "Unmute" : "Mute"}>
-            {mute ? "FX off" : "FX on"}
-          </button>
           <span className={"dot" + (connected ? " on" : "")} />
           {connected ? (
             <button type="button" className="ghost" onClick={disconnect}>
@@ -463,15 +434,10 @@ export default function GameApp() {
       {screen !== "table" && (
         <main className="center">
           <p className="kicker">zaddr xo</p>
-          <h1>Nice to not meet you.</h1>
+          <h1>No names. Just moves.</h1>
           <p className="caption">
-            Sit down as a public face. Play the board. The wallet proves the seat, not the name.
+            Pick a public face, play X and O, and let the board remember the match.
           </p>
-          <ul className="facts">
-            <li>first to 3</li>
-            <li>20s moves</li>
-            <li>60s rejoin</li>
-          </ul>
 
           {!connected && (
             <p className="hint">
@@ -533,11 +499,6 @@ export default function GameApp() {
                   Round <b>{fmt(gameLeft)}</b>
                 </span>
               </div>
-            )}
-            {!state.ended && !state.waiting && (
-              <button type="button" className="ghost tiny table-action" onClick={() => send({ type: "resign" })}>
-                Resign round
-              </button>
             )}
             {state.waiting && (
               <div className="share">

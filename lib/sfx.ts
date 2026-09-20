@@ -1,16 +1,6 @@
 "use client";
 
 let ctx: AudioContext | null = null;
-let muted = false;
-let musicTimer: number | null = null;
-let musicStep = 0;
-let musicTrack = 0;
-
-const tracks = [
-  [196, 247, 294, 247, 220, 247, 294, 330],
-  [165, 196, 247, 294, 247, 196, 220, 247],
-  [147, 196, 220, 247, 294, 247, 220, 196],
-];
 
 function audio() {
   if (typeof window === "undefined") return null;
@@ -23,24 +13,6 @@ function audio() {
   return ctx;
 }
 
-export function setMuted(v: boolean) {
-  muted = v;
-  if (muted) stopMusic();
-  try {
-    localStorage.setItem("zaddr.sfx", v ? "0" : "1");
-  } catch {
-    /* ignore */
-  }
-}
-
-export function isMuted(): boolean {
-  try {
-    return localStorage.getItem("zaddr.sfx") === "0";
-  } catch {
-    return false;
-  }
-}
-
 type SoundKind = "ui" | "place" | "cpu" | "win" | "lose" | "draw" | "join" | "timeout";
 
 function beep(
@@ -50,7 +22,6 @@ function beep(
   gain = 0.05,
   delay = 0,
 ) {
-  if (muted) return;
   const ac = audio();
   if (!ac) return;
   const t0 = ac.currentTime + delay;
@@ -66,39 +37,7 @@ function beep(
   osc.stop(t0 + dur + 0.02);
 }
 
-function tone(freq: number, dur: number, gain = 0.018, delay = 0) {
-  beep(freq, dur, "triangle", gain, delay);
-}
-
-function musicTick() {
-  if (muted) return;
-  const seq = tracks[musicTrack % tracks.length];
-  const n = seq[musicStep % seq.length];
-  tone(n, 0.22, 0.012);
-  if (musicStep % 2 === 0) tone(n / 2, 0.38, 0.01, 0.01);
-  if (musicStep % 16 === 15) musicTrack += 1;
-  musicStep += 1;
-}
-
-export function startMusic(): void {
-  if (musicTimer != null || muted) return;
-  audio();
-  musicTick();
-  musicTimer = window.setInterval(musicTick, 420);
-}
-
-export function stopMusic(): void {
-  if (musicTimer == null) return;
-  window.clearInterval(musicTimer);
-  musicTimer = null;
-}
-
-export function musicPlaying(): boolean {
-  return musicTimer != null;
-}
-
 export function sfx(kind: SoundKind) {
-  if (muted) return;
   switch (kind) {
     case "ui":
       beep(660, 0.045, "square", 0.018);
@@ -136,6 +75,5 @@ export function sfx(kind: SoundKind) {
 }
 
 export function bootSfx(): void {
-  muted = isMuted();
   audio();
 }

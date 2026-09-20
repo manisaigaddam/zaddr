@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ZADDR — Nice to not meet you.",
-  description: "Sit down as a public zaddr face. Play X and O. Owners stay shielded.",
+  title: "ZADDR XO — No names. Just moves.",
+  description: "Pick a public zaddr face, play X and O, and keep the owner unnamed.",
 };
 
 export const viewport = {
