@@ -436,7 +436,7 @@ export default function GameApp() {
           <p className="kicker">zaddr xo</p>
           <h1>No names. Just moves.</h1>
           <p className="caption">
-            Pick a public face, play X and O, and let the board remember the match.
+            A public face takes the seat. X and O tell the story. The owner stays offscreen.
           </p>
 
           {!connected && (

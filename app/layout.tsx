@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "ZADDR XO — No names. Just moves.",
-  description: "Pick a public zaddr face, play X and O, and keep the owner unnamed.",
+  description: "A public zaddr face takes the seat. X and O tell the story.",
 };
 
 export const viewport = {
