@@ -1,6 +1,6 @@
 :root {
-  --bg: #1c2430;
-  --paper: #243044;
+  --bg: #17202b;
+  --paper: #202b39;
   --ink: #f3efe6;
   --dim: #9aa3b0;
   --gold: #e8b84a;
@@ -14,7 +14,7 @@ html { -webkit-text-size-adjust: 100%; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
   background:
-    radial-gradient(ellipse 90% 55% at 50% -10%, #3d4b5e 0%, var(--bg) 58%, #141920 100%);
+    radial-gradient(ellipse 90% 50% at 50% -15%, #344255 0%, var(--bg) 58%, #10161e 100%);
 }
 
 .shell {
@@ -32,7 +32,7 @@ body {
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: repeat(4, 1fr);
   opacity: 0.13;
-  filter: saturate(0.7) contrast(1.05);
+  filter: saturate(0.55) contrast(1.05);
   pointer-events: none;
 }
 .mosaic span {
@@ -107,6 +107,8 @@ button:disabled { opacity: 0.38; cursor: not-allowed; }
   justify-content: center;
   text-align: center;
   padding: 1rem 1.2rem 2rem;
+  max-width: 58rem;
+  margin: 0 auto;
 }
 .kicker {
   color: var(--gold);
@@ -127,7 +129,7 @@ h1 {
   color: #d8d4cb;
   font-size: clamp(0.95rem, 2vw, 1.15rem);
   margin: 0 0 1.2rem;
-  max-width: 36rem;
+  max-width: 30rem;
   line-height: 1.45;
 }
 .facts {
@@ -262,12 +264,15 @@ h1 {
   z-index: 2;
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(8.5rem, 11.5rem) minmax(0, 1fr) minmax(8.5rem, 11.5rem);
-  grid-template-rows: minmax(0, 1fr);
-  gap: 0.75rem;
-  padding: 0.2rem 1rem 1rem;
+  grid-template-columns: minmax(7.8rem, 10rem) minmax(0, 1fr) minmax(7.8rem, 10rem);
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "me arena opp"
+    "match match match";
+  gap: 0.7rem;
+  padding: 0.1rem 1rem 0.85rem;
   width: 100%;
-  max-width: 88rem;
+  max-width: 74rem;
   margin: 0 auto;
   min-height: 0;
 }
@@ -275,14 +280,16 @@ h1 {
 .dock {
   border: 1px solid var(--line);
   background: rgba(36, 48, 68, 0.55);
-  padding: 0.7rem 0.65rem;
+  padding: 0.65rem 0.55rem;
   display: flex;
   flex-direction: column;
   align-items: center;
+  align-self: center;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
 }
-.dock.me { border-color: var(--gold); }
+.dock.me { border-color: var(--gold); grid-area: me; }
+.dock.opp { grid-area: opp; }
 .dock.hot { box-shadow: inset 0 0 0 2px var(--gold); }
 .dock .label {
   letter-spacing: 0.16em;
@@ -294,7 +301,7 @@ h1 {
 }
 .dock.me .label { color: var(--gold); }
 .face {
-  width: 4.8rem;
+  width: min(100%, 5rem);
   aspect-ratio: 1;
   background-color: #1a222e;
   image-rendering: pixelated;
@@ -312,6 +319,11 @@ h1 {
   font-size: 1.15rem;
   font-weight: 800;
 }
+.score small {
+  color: var(--dim);
+  font-size: 0.7rem;
+  margin-left: 0.12rem;
+}
 .score span {
   display: block;
   font-size: 0.62rem;
@@ -323,12 +335,12 @@ h1 {
 
 .history {
   list-style: none;
-  margin: 0.7rem 0 0;
+  margin: 0;
   padding: 0;
-  width: 100%;
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
+  justify-content: flex-end;
 }
 .history li {
   display: flex;
@@ -341,15 +353,19 @@ h1 {
 }
 .history li span { color: var(--dim); }
 .history li b { color: var(--gold); }
+.history li.mine { border-color: rgba(122, 220, 156, 0.5); }
+.history li.theirs { border-color: rgba(255, 138, 122, 0.5); }
+.history li.draw { border-color: rgba(154, 163, 176, 0.5); }
 .history .dim { border: 0; color: var(--dim); padding: 0; }
 
 .arena {
+  grid-area: arena;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.55rem;
+  gap: 0.45rem;
   width: 100%;
   min-height: 0;
 }
@@ -362,7 +378,7 @@ h1 {
   min-height: 1.1em;
 }
 .share {
-  width: min(100%, 34rem);
+  width: min(100%, 36rem);
   background: rgba(36, 48, 68, 0.7);
   border: 1px solid var(--line);
   padding: 0.65rem 0.75rem;
@@ -382,7 +398,7 @@ h1 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  width: min(100%, 72vmin, 34rem);
+  width: min(100%, 70vh, 31rem);
   aspect-ratio: 1;
   gap: 6px;
   background: var(--gold);
@@ -420,24 +436,54 @@ h1 {
 .result strong { font-size: clamp(1.1rem, 3vw, 1.5rem); }
 .result span { color: var(--dim); font-size: 0.82rem; }
 .result-row { display: flex; gap: 0.5rem; margin-top: 0.35rem; flex-wrap: wrap; justify-content: center; }
+.table-action { margin-top: -0.15rem; }
+
+.matchbar {
+  grid-area: match;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: center;
+  border: 1px solid var(--line);
+  background: rgba(32, 43, 57, 0.66);
+  padding: 0.55rem 0.7rem;
+  min-height: 3rem;
+}
+.matchbar > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+.matchbar b {
+  color: var(--gold);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.matchbar span {
+  color: var(--dim);
+  font-size: 0.72rem;
+}
 
 @media (max-width: 860px) {
   .stage {
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr) auto auto;
     grid-template-areas:
       "arena arena"
-      "me opp";
+      "me opp"
+      "match match";
     padding: 0.2rem 0.65rem 0.7rem;
     gap: 0.5rem;
   }
-  .arena { grid-area: arena; justify-content: flex-start; }
+  .arena { justify-content: flex-start; }
   .dock.me { grid-area: me; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 0.35rem 0.55rem; }
   .dock.opp { grid-area: opp; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 0.35rem 0.55rem; }
   .dock .label { width: 100%; margin-bottom: 0; }
   .face { width: 3.4rem; }
-  .history { margin-top: 0.2rem; }
-  .board { width: min(100%, 78vmin, 28rem); }
+  .matchbar { grid-template-columns: 1fr; gap: 0.45rem; }
+  .history { justify-content: flex-start; }
+  .board { width: min(100%, 72vmin, 27rem); }
   h1 { font-size: 2.1rem; }
 }
 @media (max-width: 420px) {
@@ -445,4 +491,9 @@ h1 {
   .cell { font-size: 1.7rem; }
   .facts { gap: 0.3rem; }
   .brand { font-size: 0.7rem; }
+  .stage { padding-inline: 0.45rem; }
+  .dock { padding: 0.45rem; }
+  .board { width: min(100%, 70vmin); gap: 4px; padding: 4px; }
+  .nav-right { gap: 0.35rem; }
+  button.tiny { padding: 0.28rem 0.42rem; }
 }

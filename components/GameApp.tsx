@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Face from "@/components/Face";
 import { FACE_IDS, faceUrl } from "@/lib/mosaic";
 import { connectNoir, disconnectNoir, PLAYER_KEY, restoreNoir, waitForNoir, watchNoir } from "@/lib/noir";
-import { bootSfx, isMuted, setMuted, sfx } from "@/lib/sfx";
+import { bootSfx, isMuted, musicPlaying, setMuted, sfx, startMusic, stopMusic } from "@/lib/sfx";
 
 type Screen = "home" | "table";
 type Mark = "X" | "O";
@@ -29,6 +29,8 @@ type GameState = {
   lastCell: number | null;
   history: Round[];
   score: { X: number; O: number; D: number };
+  seriesGoal: number;
+  seriesOver: boolean;
 };
 
 const ROOM_KEY = "zaddr.room";
@@ -109,6 +111,7 @@ export default function GameApp() {
   const [shakeConnect, setShakeConnect] = useState(false);
   const [pick, setPick] = useState<number | null>(null);
   const [mute, setMute] = useState(false);
+  const [musicOn, setMusicOn] = useState(false);
   const [state, setState] = useState<GameState | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const keyRef = useRef<string | null>(null);
@@ -130,6 +133,7 @@ export default function GameApp() {
   useEffect(() => {
     bootSfx();
     setMute(isMuted());
+    setMusicOn(musicPlaying());
   }, []);
 
   useEffect(() => {
@@ -373,7 +377,7 @@ export default function GameApp() {
   const win = state ? winningLine(state.board) : null;
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const share = state ? `${origin}/?join=${state.code}` : "";
-  const elapsed = now - clockRef.current.t;
+  const elapsed = Math.max(0, now - clockRef.current.t);
   const moveLeft = Math.max(0, clockRef.current.move - elapsed);
   const gameLeft = Math.max(0, clockRef.current.game - elapsed);
   const myTurn = Boolean(state && !state.ended && !state.waiting && state.turn === state.you);
@@ -389,6 +393,8 @@ export default function GameApp() {
 
   function resultLine() {
     if (!state?.ended) return "";
+    if (state.seriesOver && state.winner === state.you) return "Match won";
+    if (state.seriesOver) return "Match lost";
     if (state.draw || state.reason === "game-timeout") return state.reason === "game-timeout" ? "Time · draw" : "Draw";
     if (state.winner === state.you) return "You take the round";
     return "They take the round";
@@ -397,6 +403,7 @@ export default function GameApp() {
   function resultSub() {
     if (state?.reason === "move-timeout") return "Move clock ran out.";
     if (state?.reason === "disconnect") return "They didn’t return in time.";
+    if (state?.reason === "resign") return "Round ended by resign.";
     if (state?.reason === "game-timeout") return "Match clock ran out.";
     return "";
   }
@@ -408,6 +415,18 @@ export default function GameApp() {
     if (!next) sfx("ui");
   }
 
+  function toggleMusic() {
+    if (musicOn) {
+      stopMusic();
+      setMusicOn(false);
+      return;
+    }
+    setMuted(false);
+    setMute(false);
+    startMusic();
+    setMusicOn(true);
+  }
+
   return (
     <div className="shell">
       <Mosaic />
@@ -417,8 +436,11 @@ export default function GameApp() {
           ZADDR
         </button>
         <div className="nav-right">
+          <button type="button" className="ghost tiny" onClick={toggleMusic}>
+            {musicOn ? "Music on" : "Music off"}
+          </button>
           <button type="button" className="ghost tiny" onClick={toggleMute} aria-label={mute ? "Unmute" : "Mute"}>
-            {mute ? "Sound off" : "Sound on"}
+            {mute ? "FX off" : "FX on"}
           </button>
           <span className={"dot" + (connected ? " on" : "")} />
           {connected ? (
@@ -440,20 +462,20 @@ export default function GameApp() {
 
       {screen !== "table" && (
         <main className="center">
-          <p className="kicker">A zaddr game</p>
+          <p className="kicker">zaddr xo</p>
           <h1>Nice to not meet you.</h1>
           <p className="caption">
-            Two thousand eight hundred public faces. The owners stay shielded. Sit down as a face, play X and O, leave no name.
+            Sit down as a public face. Play the board. The wallet proves the seat, not the name.
           </p>
           <ul className="facts">
-            <li>Noir to sit</li>
-            <li>Rooms, not accounts</li>
-            <li>Faces, not usernames</li>
+            <li>first to 3</li>
+            <li>20s moves</li>
+            <li>60s rejoin</li>
           </ul>
 
           {!connected && (
             <p className="hint">
-              {hint || "Connect Noir (top right) to play."}
+              {hint || "Connect Noir first."}
               {installed === false && (
                 <>
                   {" "}
@@ -496,7 +518,7 @@ export default function GameApp() {
             <Face id={me?.faceId} empty={!me} />
             <div className="tag">{me ? `#${String(me.faceId).padStart(4, "0")}` : "—"}</div>
             <div className="score">
-              {state.score[state.you]} <span>wins</span>
+              {state.score[state.you]}<small>/{state.seriesGoal}</small> <span>wins</span>
             </div>
           </aside>
 
@@ -511,6 +533,11 @@ export default function GameApp() {
                   Round <b>{fmt(gameLeft)}</b>
                 </span>
               </div>
+            )}
+            {!state.ended && !state.waiting && (
+              <button type="button" className="ghost tiny table-action" onClick={() => send({ type: "resign" })}>
+                Resign round
+              </button>
             )}
             {state.waiting && (
               <div className="share">
@@ -554,7 +581,7 @@ export default function GameApp() {
                 {resultSub() && <span>{resultSub()}</span>}
                 <div className="result-row">
                   <button type="button" onClick={() => send({ type: "again" })}>
-                    Next round
+                    {state.seriesOver ? "New match" : "Next round"}
                   </button>
                   <button type="button" className="ghost" onClick={leave}>
                     Home
@@ -573,18 +600,25 @@ export default function GameApp() {
               {opp && opp.online === false ? " · away" : ""}
             </div>
             <div className="score">
-              {opp ? state.score[opp.mark] : 0} <span>wins</span>
+              {opp ? state.score[opp.mark] : 0}<small>/{state.seriesGoal}</small> <span>wins</span>
+            </div>
+          </aside>
+
+          <div className="matchbar">
+            <div>
+              <b>First to {state.seriesGoal}</b>
+              <span>Round {state.round}</span>
             </div>
             <ol className="history">
-              {state.history.length === 0 && <li className="dim">Rounds land here</li>}
+              {state.history.length === 0 && <li className="dim">No rounds yet</li>}
               {state.history.map((r) => (
-                <li key={r.round}>
+                <li key={r.round} className={r.winner === state.you ? "mine" : r.draw ? "draw" : "theirs"}>
                   <span>R{r.round}</span>
                   <b>{glyph(r)}</b>
                 </li>
               ))}
             </ol>
-          </aside>
+          </div>
         </section>
       )}
 
