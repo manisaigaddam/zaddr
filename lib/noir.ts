@@ -75,7 +75,7 @@ export async function restoreNoir(): Promise<{ key: string | null; installed: bo
 
 export async function connectNoir(): Promise<string> {
   const wallet = await waitForNoir(2000);
-  if (!wallet) throw new Error("Noir isn’t on this page. Open http://localhost:3000 in Chrome with the extension.");
+  if (!wallet) throw new Error("Noir was not detected. Install/open the Noir extension in Chrome, then reload this page.");
   const existing = await wallet.zcash.getAccounts();
   if (existing) return keyFromConnection(existing);
   const connection = await wallet.zcash.connect();

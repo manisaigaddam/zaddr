@@ -34,11 +34,34 @@ type GameState = {
 };
 
 const ROOM_KEY = "zaddr.room";
+const CONFIGURED_WS_URL = process.env.NEXT_PUBLIC_WS_URL?.trim();
 const LINES = [
   [0, 1, 2], [3, 4, 5], [6, 7, 8],
   [0, 3, 6], [1, 4, 7], [2, 5, 8],
   [0, 4, 8], [2, 4, 6],
 ];
+
+function normalizeWsUrl(raw: string) {
+  const url = new URL(raw);
+  if (url.protocol === "https:") url.protocol = "wss:";
+  if (url.protocol === "http:") url.protocol = "ws:";
+  if (url.protocol !== "ws:" && url.protocol !== "wss:") throw new Error("Bad websocket URL");
+  if (url.pathname === "/" || !url.pathname) url.pathname = "/ws";
+  return url.toString();
+}
+
+function gameSocketUrl() {
+  if (CONFIGURED_WS_URL) return normalizeWsUrl(CONFIGURED_WS_URL);
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  return `${proto}//${location.host}/ws`;
+}
+
+function gameServerError() {
+  if (location.hostname.endsWith(".vercel.app") && !CONFIGURED_WS_URL) {
+    return "Game server is not deployed. Vercel serves this page, but rooms need a persistent WebSocket server. Set NEXT_PUBLIC_WS_URL to that server.";
+  }
+  return "Game server is not reachable.";
+}
 
 function winningLine(board: (Mark | null)[]) {
   for (const line of LINES) {
@@ -241,11 +264,16 @@ export default function GameApp() {
       if (existing.readyState === WebSocket.OPEN) return Promise.resolve(existing);
       return new Promise((resolve, reject) => {
         existing.addEventListener("open", () => resolve(existing), { once: true });
-        existing.addEventListener("error", () => reject(new Error("Could not reach the game server.")), { once: true });
+        existing.addEventListener("error", () => reject(new Error(gameServerError())), { once: true });
       });
     }
-    const proto = location.protocol === "https:" ? "wss:" : "ws:";
-    const ws = new WebSocket(`${proto}//${location.host}/ws`);
+    let opened = false;
+    let ws: WebSocket;
+    try {
+      ws = new WebSocket(gameSocketUrl());
+    } catch {
+      return Promise.reject(new Error(gameServerError()));
+    }
     wsRef.current = ws;
     ws.onmessage = (ev) => {
       let msg: { type?: string; error?: string; code?: string; mode?: string };
@@ -286,6 +314,7 @@ export default function GameApp() {
     };
     ws.onclose = () => {
       if (wsRef.current === ws) wsRef.current = null;
+      if (!opened) return;
       if (!keyRef.current) return;
       window.setTimeout(() => {
         if (wsRef.current || !keyRef.current) return;
@@ -295,8 +324,13 @@ export default function GameApp() {
       }, 700);
     };
     return new Promise((resolve, reject) => {
-      ws.onopen = () => resolve(ws);
-      ws.onerror = () => reject(new Error("Could not reach the game server."));
+      ws.onopen = () => {
+        opened = true;
+        resolve(ws);
+      };
+      ws.onerror = () => {
+        if (!opened) reject(new Error(gameServerError()));
+      };
     });
   }, [enterRoom, send]);
 
@@ -307,7 +341,9 @@ export default function GameApp() {
       .then(() => {
         if (!dead) enterRoom();
       })
-      .catch(() => {});
+      .catch((e) => {
+        if (!dead) setHint(e instanceof Error ? e.message : gameServerError());
+      });
     return () => {
       dead = true;
     };
