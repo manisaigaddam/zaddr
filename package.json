@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "node server.mjs",
     "build": "next build",
-    "start": "node server.mjs"
+    "start": "node socket-server.mjs",
+    "start:web": "node server.mjs"
   },
   "dependencies": {
     "@noir-wallet/sdk": "^0.1.9",
