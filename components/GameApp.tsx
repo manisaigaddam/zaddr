@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Face from "@/components/Face";
-import { FACE_IDS, faceUrl } from "@/lib/mosaic";
-import { connectNoir, disconnectNoir, PLAYER_KEY, restoreNoir, waitForNoir, watchNoir } from "@/lib/noir";
-import { bootSfx, sfx } from "@/lib/sfx";
+import Face from "./Face";
+import { FACE_IDS, faceUrl } from "../lib/mosaic";
+import { connectNoir, disconnectNoir, PLAYER_KEY, restoreNoir, waitForNoir, watchNoir } from "../lib/noir";
+import { bootSfx, sfx } from "../lib/sfx";
 
 type Screen = "home" | "table";
 type Mark = "X" | "O";

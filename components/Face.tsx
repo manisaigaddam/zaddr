@@ -1,6 +1,6 @@
 "use client";
 
-import { SPRITE_FRAMES, faceUrl } from "@/lib/mosaic";
+import { SPRITE_FRAMES, faceUrl } from "../lib/mosaic";
 
 export default function Face({ id, empty }: { id?: number; empty?: boolean }) {
   if (empty || id == null) return <div className="face empty" />;
