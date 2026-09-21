@@ -71,6 +71,20 @@ function winningLine(board: (Mark | null)[]) {
   return null;
 }
 
+function winClass(line: number[] | null) {
+  if (!line) return "";
+  const key = line.join("-");
+  if (key === "0-1-2") return " win-r0";
+  if (key === "3-4-5") return " win-r1";
+  if (key === "6-7-8") return " win-r2";
+  if (key === "0-3-6") return " win-c0";
+  if (key === "1-4-7") return " win-c1";
+  if (key === "2-5-8") return " win-c2";
+  if (key === "0-4-8") return " win-d0";
+  if (key === "2-4-6") return " win-d1";
+  return "";
+}
+
 function fmt(ms: number) {
   const s = Math.max(0, Math.ceil(ms / 1000));
   const m = Math.floor(s / 60);
@@ -470,9 +484,9 @@ export default function GameApp() {
       {screen !== "table" && (
         <main className="center">
           <p className="kicker">zaddr xo</p>
-          <h1>No names. Just moves.</h1>
+          <h1>Shielded seats. Public moves.</h1>
           <p className="caption">
-            A public face takes the seat. X and O tell the story. The owner stays offscreen.
+            Connect Noir and play a first-to-3 XO match as a zaddr face. No profile names, no address on the board.
           </p>
 
           {!connected && (
@@ -548,7 +562,7 @@ export default function GameApp() {
                 <span className="link">{share}</span>
               </div>
             )}
-            <div className={"board" + (myTurn ? " live" : "")}>
+            <div className={"board" + (myTurn ? " live" : "") + (state.ended ? " ended" : "") + (win ? " has-win" + winClass(win) : "")}>
               {state.board.map((mark, i) => {
                 const playable = myTurn && !mark;
                 return (
@@ -567,7 +581,7 @@ export default function GameApp() {
                     onFocus={() => playable && setPick(i)}
                     onClick={() => playCell(i)}
                   >
-                    {mark || ""}
+                    {mark && <span className="mark">{mark}</span>}
                   </button>
                 );
               })}
@@ -628,7 +642,7 @@ export default function GameApp() {
         >
           <div className="panel" onClick={(e) => e.stopPropagation()}>
             <h2>Multiplayer</h2>
-            <p className="panel-lead">One creates a room. The other types the code. Same two faces until the series ends.</p>
+            <p className="panel-lead">One player creates a room. The other enters the code. Same two seats until the match ends.</p>
             <button
               type="button"
               className="wide"

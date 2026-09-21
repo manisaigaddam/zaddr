@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "ZADDR XO — No names. Just moves.",
-  description: "A public zaddr face takes the seat. X and O tell the story.",
+  description: "A first-to-3 XO match played as zaddr faces, without profile names or addresses on the board.",
 };
 
 export const viewport = {
